@@ -1,10 +1,3 @@
-with st.expander("How to add API key in Streamlit Cloud"):
-                st.code("""
-1. Go to your app settings in Streamlit Cloud
-2. Click on "Secrets"
-3. Add:
-OPENAI_API_KEY = "your-api-key-here"
-                """)import os
 import pandas as pd
 import streamlit as st
 import matplotlib.pyplot as plt
