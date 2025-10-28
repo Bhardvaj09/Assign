@@ -57,10 +57,11 @@ if uploaded_file:
         
         # Initialize LLM
         if api_key:
+            # FIXED: Use openai_api_key parameter instead of api_key
             llm = ChatOpenAI(
                 model="gpt-3.5-turbo",
                 temperature=0,
-                api_key=api_key
+                openai_api_key=api_key  # Changed from api_key to openai_api_key
             )
             
             # Initialize session state
@@ -258,4 +259,4 @@ else:
     # Welcome message when no file is uploaded
     st.info("👆 Upload a CSV file to get started!")
     
-    
+   
