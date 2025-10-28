@@ -5,12 +5,6 @@ import matplotlib.pyplot as plt
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 
-# Import with try-except for compatibility
-try:
-    from langchain_experimental.agents.agent_toolkits import create_pandas_dataframe_agent
-except ImportError:
-    from langchain_experimental.agents import create_pandas_dataframe_agent
-
 # Load environment variables
 load_dotenv()
 api_key = os.getenv("OPENAI_API_KEY")
@@ -25,19 +19,10 @@ st.set_page_config(
 st.title("📊 Chat with Your CSV Data")
 st.markdown("Upload a CSV file and ask questions about your data using natural language!")
 
-# System prompt for the AI agent
-SYSTEM_PROMPT = """You are an expert Data Analyst AI assistant.
-You analyze datasets using Python, pandas, and statistics.
-
-Your responsibilities:
-- Understand user questions about the uploaded CSV file
-- Use accurate data analysis and reasoning
-- Provide clear, concise answers
-- When asked to visualize, describe the ideal chart type and variables
-- Explain gracefully if data is inconsistent or missing
-- Never make up values not in the dataset
-- Show your work when doing calculations
-"""
+# System prompt
+SYSTEM_PROMPT = """You are an expert data analyst. Analyze the data and answer questions accurately.
+When asked about data, provide clear, concise answers based only on the information available.
+If asked to perform calculations, show your work."""
 
 # File uploader
 uploaded_file = st.file_uploader("📂 Upload a CSV file", type=["csv"])
@@ -70,7 +55,7 @@ if uploaded_file:
             })
             st.dataframe(col_info)
         
-        # Initialize LLM and agent
+        # Initialize LLM
         if api_key:
             llm = ChatOpenAI(
                 model="gpt-3.5-turbo",
@@ -78,15 +63,7 @@ if uploaded_file:
                 api_key=api_key
             )
             
-            agent = create_pandas_dataframe_agent(
-                llm,
-                df,
-                verbose=True,
-                agent_type="openai-functions",
-                allow_dangerous_code=True
-            )
-            
-            # Initialize session state for chat history
+            # Initialize session state
             if "messages" not in st.session_state:
                 st.session_state.messages = []
             
@@ -97,22 +74,21 @@ if uploaded_file:
             with st.expander("💡 Example Questions"):
                 st.markdown("""
                 - What are the column names?
-                - Show me the first 10 rows
+                - Show me summary statistics
                 - What is the average of [column_name]?
                 - How many unique values are in [column_name]?
-                - What are the top 5 values by [column_name]?
+                - What are the top 5 rows sorted by [column_name]?
                 - Are there any missing values?
-                - Show me summary statistics
-                - Create a visualization of [column_name]
+                - What's the correlation between [column1] and [column2]?
                 """)
             
             # Query input
             query = st.text_input(
                 "Type your question here:",
-                placeholder="e.g., What is the average sales by region?"
+                placeholder="e.g., What is the average value in the sales column?"
             )
             
-            # Ask button
+            # Buttons
             col1, col2 = st.columns([1, 5])
             with col1:
                 ask_button = st.button("🔍 Ask", type="primary")
@@ -134,22 +110,44 @@ if uploaded_file:
                 
                 with st.spinner("🤔 Analyzing your data..."):
                     try:
-                        # Run agent
-                        response = agent.run(query)
+                        # Prepare data context
+                        data_summary = f"""
+Dataset Information:
+- Shape: {df.shape[0]} rows, {df.shape[1]} columns
+- Columns: {', '.join(df.columns.tolist())}
+- Data types: {df.dtypes.to_dict()}
+
+First few rows:
+{df.head(10).to_string()}
+
+Summary statistics:
+{df.describe().to_string()}
+"""
+                        
+                        # Create messages for LLM
+                        messages = [
+                            {"role": "system", "content": SYSTEM_PROMPT},
+                            {"role": "system", "content": f"Here's the data you're analyzing:\n{data_summary}"},
+                            {"role": "user", "content": query}
+                        ]
+                        
+                        # Get response from LLM
+                        response = llm.invoke(messages)
+                        answer = response.content
                         
                         # Add assistant response to history
                         st.session_state.messages.append({
                             "role": "assistant",
-                            "content": response
+                            "content": answer
                         })
                         
                         # Display response
                         st.success("✅ Answer:")
-                        st.write(response)
+                        st.write(answer)
                         
                     except Exception as e:
                         st.error(f"⚠️ Error: {str(e)}")
-                        st.info("💡 Try rephrasing your question or ask something simpler.")
+                        st.info("💡 Try rephrasing your question or check your API key.")
             
             elif ask_button and not query.strip():
                 st.warning("⚠️ Please enter a question.")
@@ -171,28 +169,28 @@ if uploaded_file:
             with st.expander("🎨 Chart Builder"):
                 chart_col1, chart_col2 = st.columns(2)
                 
+                # Get numeric and categorical columns
+                numeric_cols = df.select_dtypes(include=['number']).columns.tolist()
+                all_cols = df.columns.tolist()
+                
                 with chart_col1:
-                    x_axis = st.selectbox("Select X-axis", df.columns)
+                    x_axis = st.selectbox("Select X-axis", all_cols)
                     chart_type = st.selectbox(
                         "Select Chart Type",
-                        ["Bar", "Line", "Scatter", "Pie", "Histogram"]
+                        ["Bar", "Line", "Scatter", "Pie", "Histogram", "Box Plot"]
                     )
                 
                 with chart_col2:
-                    y_axis = st.selectbox("Select Y-axis", df.columns)
-                    color_scheme = st.selectbox(
-                        "Color Scheme",
-                        ["Default", "Viridis", "Plasma", "Coolwarm"]
-                    )
+                    y_axis = st.selectbox("Select Y-axis", numeric_cols if numeric_cols else all_cols)
                 
                 if st.button("📈 Generate Chart"):
                     fig, ax = plt.subplots(figsize=(10, 6))
                     
                     try:
                         if chart_type == "Bar":
-                            data = df.groupby(x_axis)[y_axis].sum().sort_values(ascending=False)
+                            data = df.groupby(x_axis)[y_axis].sum().sort_values(ascending=False).head(10)
                             data.plot(kind="bar", ax=ax, color='steelblue')
-                            ax.set_title(f"{y_axis} by {x_axis}", fontsize=14, fontweight='bold')
+                            ax.set_title(f"Top 10 {y_axis} by {x_axis}", fontsize=14, fontweight='bold')
                             ax.set_xlabel(x_axis)
                             ax.set_ylabel(y_axis)
                             plt.xticks(rotation=45, ha='right')
@@ -206,14 +204,14 @@ if uploaded_file:
                             ax.grid(True, alpha=0.3)
                             
                         elif chart_type == "Scatter":
-                            ax.scatter(df[x_axis], df[y_axis], alpha=0.6, color='steelblue')
+                            ax.scatter(df[x_axis], df[y_axis], alpha=0.6, color='steelblue', s=50)
                             ax.set_xlabel(x_axis)
                             ax.set_ylabel(y_axis)
                             ax.set_title(f"{y_axis} vs {x_axis}", fontsize=14, fontweight='bold')
                             ax.grid(True, alpha=0.3)
                             
                         elif chart_type == "Pie":
-                            data = df.groupby(x_axis)[y_axis].sum()
+                            data = df.groupby(x_axis)[y_axis].sum().head(10)
                             data.plot(kind="pie", ax=ax, autopct='%1.1f%%', startangle=90)
                             ax.set_title(f"{y_axis} Distribution by {x_axis}", fontsize=14, fontweight='bold')
                             ax.set_ylabel('')
@@ -224,6 +222,13 @@ if uploaded_file:
                             ax.set_xlabel(y_axis)
                             ax.set_ylabel('Frequency')
                             ax.grid(True, alpha=0.3)
+                            
+                        elif chart_type == "Box Plot":
+                            df.boxplot(column=y_axis, by=x_axis, ax=ax)
+                            ax.set_title(f"{y_axis} Distribution by {x_axis}", fontsize=14, fontweight='bold')
+                            ax.set_xlabel(x_axis)
+                            ax.set_ylabel(y_axis)
+                            plt.suptitle('')
                         
                         plt.tight_layout()
                         st.pyplot(fig)
@@ -234,7 +239,16 @@ if uploaded_file:
         
         else:
             st.error("🔑 OpenAI API key not found!")
-            st.info("Please create a `.env` file with your `OPENAI_API_KEY=your_key_here`")
+            st.info("Please add your API key in Streamlit Cloud secrets or create a `.env` file with `OPENAI_API_KEY=your_key_here`")
+            
+            # Show how to add secrets in Streamlit Cloud
+            with st.expander("How to add API key in Streamlit Cloud"):
+                st.code("""
+1. Go to your app settings in Streamlit Cloud
+2. Click on "Secrets"
+3. Add:
+OPENAI_API_KEY = "your-api-key-here"
+                """)
     
     except Exception as e:
         st.error(f"❌ Error reading CSV file: {str(e)}")
@@ -252,8 +266,10 @@ else:
     4. Create custom visualizations
     
     ### 🔧 Setup:
-    Create a `.env` file in your project directory:
+    For local development, create a `.env` file:
     ```
     OPENAI_API_KEY=your_openai_api_key_here
     ```
+    
+    For Streamlit Cloud, add your API key in the app secrets.
     """)
