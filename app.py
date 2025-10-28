@@ -258,4 +258,4 @@ else:
     # Welcome message when no file is uploaded
     st.info("👆 Upload a CSV file to get started!")
     
-    s
+    
