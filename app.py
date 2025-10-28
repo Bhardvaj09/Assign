@@ -4,7 +4,12 @@ import streamlit as st
 import matplotlib.pyplot as plt
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
-from langchain_experimental.agents.agent_toolkits import create_pandas_dataframe_agent
+
+# Import with try-except for compatibility
+try:
+    from langchain_experimental.agents.agent_toolkits import create_pandas_dataframe_agent
+except ImportError:
+    from langchain_experimental.agents import create_pandas_dataframe_agent
 
 # Load environment variables
 load_dotenv()
