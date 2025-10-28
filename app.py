@@ -258,18 +258,4 @@ else:
     # Welcome message when no file is uploaded
     st.info("👆 Upload a CSV file to get started!")
     
-    st.markdown("""
-    ### 🚀 How to Use:
-    1. Upload your CSV file using the uploader above
-    2. View the data preview and column information
-    3. Ask questions in natural language
-    4. Create custom visualizations
-    
-    ### 🔧 Setup:
-    For local development, create a `.env` file:
-    ```
-    OPENAI_API_KEY=your_openai_api_key_here
-    ```
-    
-    For Streamlit Cloud, add your API key in the app secrets.
-    """)
+    s
