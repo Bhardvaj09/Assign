@@ -4,7 +4,7 @@ matplotlib>=3.7.0
 python-dotenv>=1.0.0
 langchain==0.1.20
 langchain-openai==0.1.7
-langchain-experimental==0.0.59
+
 langchain-community==0.0.38
 langchain-core==0.1.52
 openai==1.30.1
