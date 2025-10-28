@@ -4,7 +4,6 @@ import streamlit as st
 import matplotlib.pyplot as plt
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
-from langchain.agents.agent_types import AgentType
 from langchain_experimental.agents.agent_toolkits import create_pandas_dataframe_agent
 
 # Load environment variables
@@ -78,7 +77,7 @@ if uploaded_file:
                 llm,
                 df,
                 verbose=True,
-                agent_type=AgentType.OPENAI_FUNCTIONS,
+                agent_type="openai-functions",
                 allow_dangerous_code=True
             )
             
