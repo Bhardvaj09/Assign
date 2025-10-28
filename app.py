@@ -2,13 +2,9 @@ import os
 import pandas as pd
 import streamlit as st
 import matplotlib.pyplot as plt
-from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 
-# --- Load environment variables ---
-load_dotenv()
-
-# Page configuration
+# Streamlit Page Config
 st.set_page_config(
     page_title="Chat with CSV - Data Analyst Agent",
     page_icon="📊",
@@ -17,40 +13,31 @@ st.set_page_config(
 
 st.title("📊 Chat with Your CSV Data")
 
-# --- API Key Section ---
-api_key = os.getenv("OPENAI_API_KEY")
+# 🔑 Step 1: Let user paste their API key
+st.sidebar.header("🔐 OpenAI API Setup")
+api_key = st.sidebar.text_input("Enter your OpenAI API key:", type="password")
 
 if not api_key:
-    try:
-        api_key = st.secrets["OPENAI_API_KEY"]
-    except Exception:
-        api_key = None
+    st.sidebar.warning("Please enter your API key to continue.")
+    st.stop()
 
-# Allow user to manually enter API key if not found
-if not api_key:
-    api_key = st.text_input("🔑 Enter your OpenAI API Key:", type="password")
-    if not api_key:
-        st.warning("Please provide your OpenAI API key to continue.")
-        st.stop()
-
-# --- System Prompt ---
+# System Prompt
 SYSTEM_PROMPT = """You are an expert data analyst. Analyze the data and answer questions accurately.
 When asked about data, provide clear, concise answers based only on the information available.
 If asked to perform calculations, show your work."""
 
-# --- File Upload Section ---
+# File Uploader
 uploaded_file = st.file_uploader("📂 Upload a CSV file", type=["csv"])
 
 if uploaded_file:
     try:
-        # Read CSV file
         df = pd.read_csv(uploaded_file)
 
-        # Display data preview
+        # Data Preview
         st.subheader("📄 Data Preview")
         st.dataframe(df.head(10))
 
-        # Display dataset info
+        # Dataset Info
         col1, col2, col3 = st.columns(3)
         with col1:
             st.metric("Total Rows", len(df))
@@ -59,7 +46,7 @@ if uploaded_file:
         with col3:
             st.metric("Memory Usage", f"{df.memory_usage(deep=True).sum() / 1024:.2f} KB")
 
-        # Show column info
+        # Column Info
         with st.expander("📋 Column Information"):
             col_info = pd.DataFrame({
                 'Column': df.columns,
@@ -69,7 +56,7 @@ if uploaded_file:
             })
             st.dataframe(col_info)
 
-        # --- Initialize LLM ---
+        # Initialize ChatOpenAI with user-provided key
         try:
             llm = ChatOpenAI(
                 model="gpt-4o-mini",
@@ -80,15 +67,14 @@ if uploaded_file:
             if "messages" not in st.session_state:
                 st.session_state.messages = []
 
+            # Chat Section
             st.subheader("💬 Ask Questions About Your Data")
 
-            # Query input
             query = st.text_input(
                 "Type your question here:",
                 placeholder="e.g., What is the average value in the sales column?"
             )
 
-            # Buttons
             col1, col2 = st.columns([1, 5])
             with col1:
                 ask_button = st.button("🔍 Ask", type="primary")
@@ -102,6 +88,7 @@ if uploaded_file:
 
             if ask_button and query.strip():
                 st.session_state.messages.append({"role": "user", "content": query})
+
                 with st.spinner("🤔 Analyzing your data..."):
                     try:
                         data_summary = f"""
@@ -116,23 +103,32 @@ First few rows:
 Summary statistics:
 {df.describe().to_string()}
 """
+
                         messages = [
                             {"role": "system", "content": SYSTEM_PROMPT},
                             {"role": "system", "content": f"Here's the data you're analyzing:\n{data_summary}"},
                             {"role": "user", "content": query}
                         ]
+
                         response = llm.invoke(messages)
                         answer = response.content
-                        st.session_state.messages.append({"role": "assistant", "content": answer})
+
+                        st.session_state.messages.append({
+                            "role": "assistant",
+                            "content": answer
+                        })
+
                         st.success("✅ Answer:")
                         st.write(answer)
+
                     except Exception as e:
                         st.error(f"⚠️ Error: {str(e)}")
                         st.info("💡 Try rephrasing your question or check your API key.")
+
             elif ask_button and not query.strip():
                 st.warning("⚠️ Please enter a question.")
 
-            # Display chat history
+            # Display Chat History
             if st.session_state.messages:
                 st.subheader("📜 Chat History")
                 for i, msg in enumerate(st.session_state.messages):
@@ -143,7 +139,7 @@ Summary statistics:
                     if i < len(st.session_state.messages) - 1:
                         st.divider()
 
-            # --- Visualization Section ---
+            # Chart Builder
             st.subheader("📊 Create Custom Visualizations")
 
             with st.expander("🎨 Chart Builder"):
@@ -168,40 +164,30 @@ Summary statistics:
                             data = df.groupby(x_axis)[y_axis].sum().sort_values(ascending=False).head(10)
                             data.plot(kind="bar", ax=ax, color='steelblue')
                             ax.set_title(f"Top 10 {y_axis} by {x_axis}")
-                            plt.xticks(rotation=45, ha='right')
-
                         elif chart_type == "Line":
                             data = df.groupby(x_axis)[y_axis].sum()
-                            data.plot(kind="line", ax=ax, marker='o', linewidth=2, color='steelblue')
-
+                            data.plot(kind="line", ax=ax, marker='o', color='steelblue')
                         elif chart_type == "Scatter":
-                            ax.scatter(df[x_axis], df[y_axis], alpha=0.6, color='steelblue', s=50)
-
+                            ax.scatter(df[x_axis], df[y_axis], alpha=0.6, color='steelblue')
                         elif chart_type == "Pie":
                             data = df.groupby(x_axis)[y_axis].sum().head(10)
                             data.plot(kind="pie", ax=ax, autopct='%1.1f%%', startangle=90)
                             ax.set_ylabel('')
-
                         elif chart_type == "Histogram":
                             df[y_axis].hist(ax=ax, bins=20, color='steelblue', edgecolor='black')
-
                         elif chart_type == "Box Plot":
                             df.boxplot(column=y_axis, by=x_axis, ax=ax)
                             plt.suptitle('')
-
                         plt.tight_layout()
                         st.pyplot(fig)
-
                     except Exception as e:
                         st.error(f"Could not generate chart: {str(e)}")
-                        st.info("💡 Try selecting different columns or chart type.")
 
-        except Exception as init_error:
-            st.error(f"🔑 Error initializing OpenAI: {str(init_error)}")
-            st.info("Please check that your API key is valid and has not expired.")
+        except Exception as e:
+            st.error(f"🔑 Error initializing OpenAI: {str(e)}")
 
     except Exception as e:
         st.error(f"❌ Error reading CSV file: {str(e)}")
-        st.info("Please make sure your CSV file is properly formatted.")
+
 else:
     st.info("👆 Upload a CSV file to get started!")
