@@ -91,17 +91,7 @@ Dataset Overview:
             elif ask_button and not query.strip():
                 st.warning(" Please enter a valid question.")
 
-            # Display Chat History
-            if st.session_state.messages:
-                st.subheader(" Conversation History")
-                for i, msg in enumerate(st.session_state.messages):
-                    if msg["role"] == "user":
-                        st.markdown(f"** You:** {msg['content']}")
-                    else:
-                        st.markdown(f"** Assistant:** {msg['content']}")
-                    if i < len(st.session_state.messages) - 1:
-                        st.divider()
-
+            
         except Exception as e:
             st.error(f" Error initializing OpenAI: {str(e)}")
 
