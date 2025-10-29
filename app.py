@@ -1,3 +1,4 @@
+
 import os
 import pandas as pd
 import streamlit as st
@@ -20,6 +21,9 @@ if not api_key:
     st.sidebar.warning("Please enter your API key to continue.")
     st.stop()
 
+st.sidebar.markdown("---")
+st.sidebar.markdown("💬 **Ask me anything about your data below!**")
+
 # System Prompt
 SYSTEM_PROMPT = """You are an expert data analyst and Python programmer.
 Analyze the uploaded CSV data and accurately answer questions or generate Pandas code.
@@ -40,27 +44,17 @@ if uploaded_file:
                 openai_api_key=api_key
             )
 
-            st.subheader("💬 Ask Questions or Generate Code")
-
-            # Chat input
-            query = st.text_input(
-                "Ask something about your data (e.g., 'Find average sales by region' or 'Generate Pandas code for filtering top 10 customers')"
-            )
-
-            col1, col2 = st.columns([1, 4])
-            with col1:
-                ask_button = st.button("🔍 Ask", type="primary")
-            with col2:
-                clear_button = st.button("🗑️ Clear Chat")
-
-            # Chat state
+            # Maintain chat history
             if "messages" not in st.session_state:
                 st.session_state.messages = []
 
-            if clear_button:
-                st.session_state.messages = []
-                st.success("Chat cleared!")
-                st.rerun()
+            # Chat input (no title above)
+            query = st.text_input(
+                "",
+                placeholder="Type your question or ask for code... (e.g., 'Show top 5 rows where sales > 5000')"
+            )
+
+            ask_button = st.button("🔍 Ask", type="primary")
 
             if ask_button and query.strip():
                 st.session_state.messages.append({"role": "user", "content": query})
@@ -76,7 +70,7 @@ Dataset Overview:
                     messages = [
                         {"role": "system", "content": SYSTEM_PROMPT},
                         {"role": "system", "content": f"Here is the data description:\n{data_summary}"},
-                        {"role": "user", "content": query}
+                        *st.session_state.messages
                     ]
 
                     try:
