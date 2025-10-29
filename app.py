@@ -11,7 +11,7 @@ st.set_page_config(
     layout="wide"
 )
 
-st.title("📊 Chat with Your CSV Data")
+st.title("Data Analyst Agent")
 
 # 🔑 Step 1: API Key Input
 st.sidebar.header("🔐 OpenAI API Setup")
@@ -59,7 +59,7 @@ if uploaded_file:
             if ask_button and query.strip():
                 st.session_state.messages.append({"role": "user", "content": query})
 
-                with st.spinner("🤔 Thinking..."):
+                with st.spinner(" Thinking for better answer..."):
                     data_summary = f"""
 Dataset Overview:
 - Shape: {df.shape[0]} rows, {df.shape[1]} columns
@@ -82,32 +82,32 @@ Dataset Overview:
                             "content": answer
                         })
 
-                        st.success("✅ Response:")
+                        st.success(" Response:")
                         st.write(answer)
 
                     except Exception as e:
-                        st.error(f"⚠️ Error: {str(e)}")
-                        st.info("💡 Try rephrasing your question or check your API key.")
+                        st.error(f" Error: {str(e)}")
+                        st.info(" Try rephrasing your question or check your API key.")
 
             elif ask_button and not query.strip():
-                st.warning("⚠️ Please enter a valid question.")
+                st.warning(" Please enter a valid question.")
 
             # Display Chat History
             if st.session_state.messages:
-                st.subheader("📜 Conversation History")
+                st.subheader(" Conversation History")
                 for i, msg in enumerate(st.session_state.messages):
                     if msg["role"] == "user":
-                        st.markdown(f"**🙋 You:** {msg['content']}")
+                        st.markdown(f"** You:** {msg['content']}")
                     else:
-                        st.markdown(f"**🤖 Assistant:** {msg['content']}")
+                        st.markdown(f"** Assistant:** {msg['content']}")
                     if i < len(st.session_state.messages) - 1:
                         st.divider()
 
         except Exception as e:
-            st.error(f"🔑 Error initializing OpenAI: {str(e)}")
+            st.error(f" Error initializing OpenAI: {str(e)}")
 
     except Exception as e:
-        st.error(f"❌ Error reading CSV file: {str(e)}")
+        st.error(f" Error reading CSV file: {str(e)}")
 
 else:
     st.info("👆 Upload a CSV file to begin asking questions.")
