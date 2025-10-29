@@ -14,7 +14,7 @@ st.set_page_config(
 st.title("Data Analyst Agent")
 
 # 🔑 Step 1: API Key Input
-st.sidebar.header("🔐 OpenAI API Setup")
+st.sidebar.header(" OpenAI API Setup")
 api_key = st.sidebar.text_input("Enter your OpenAI API key:", type="password")
 
 if not api_key:
@@ -53,7 +53,7 @@ if uploaded_file:
                 placeholder="Type your question or ask for code... (e.g., 'Show top 5 rows where sales > 5000')"
             )
 
-            ask_button = st.button("🔍 Generate", type="primary")
+            ask_button = st.button("Generate", type="primary")
 
             if ask_button and query.strip():
                 st.session_state.messages.append({"role": "user", "content": query})
