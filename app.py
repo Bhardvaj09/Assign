@@ -22,15 +22,14 @@ if not api_key:
     st.stop()
 
 st.sidebar.markdown("---")
-st.sidebar.markdown("💬 **Ask me anything about your data below!**")
 
 # System Prompt
 SYSTEM_PROMPT = """You are an expert data analyst and Python programmer.
-Analyze the uploaded CSV data and accurately answer questions or generate Pandas code.
+Analyze the uploaded CSV data and accurately answer questions or generate Pandas and numpy code,Excel Formulas and can help with Tableau.
 Be concise, and only use data provided."""
 
 # 🔹 Step 2: File Upload
-uploaded_file = st.file_uploader("📂 Upload your CSV file", type=["csv"])
+uploaded_file = st.file_uploader("Upload your CSV file", type=["csv"])
 
 if uploaded_file:
     try:
@@ -54,7 +53,7 @@ if uploaded_file:
                 placeholder="Type your question or ask for code... (e.g., 'Show top 5 rows where sales > 5000')"
             )
 
-            ask_button = st.button("🔍 Ask", type="primary")
+            ask_button = st.button("🔍 Generate", type="primary")
 
             if ask_button and query.strip():
                 st.session_state.messages.append({"role": "user", "content": query})
