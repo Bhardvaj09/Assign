@@ -25,7 +25,7 @@ st.sidebar.markdown("---")
 
 # System Prompt
 SYSTEM_PROMPT = """You are an expert data analyst and Python programmer.
-Analyze the uploaded CSV data and accurately answer questions or generate Pandas and numpy code,Excel Formulas and can help with Tableau.
+Analyze the uploaded CSV data and accurately answer questions or generate Pandas and numpy code,Excel Formulas and can help with Tableau and visualizations using matplotlib.
 Be concise, and only use data provided."""
 
 # 🔹 Step 2: File Upload
