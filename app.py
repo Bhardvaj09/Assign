@@ -25,11 +25,11 @@ st.sidebar.markdown("---")
 
 
 SYSTEM_PROMPT = """You are an expert data analyst and Python programmer.
-Analyze the uploaded CSV data and accurately answer questions or generate Pandas and numpy code,Excel Formulas and can help with Tableau and able to generate visualizations amd their codes using matplotlib and seaborn.
+Analyze the uploaded CSV  data and accurately answer questions or generate Pandas and numpy code,Excel Formulas and can help with Tableau and able to generate visualizations amd their codes using matplotlib and seaborn.
 Be concise, and only use data provided."""
 
 
-uploaded_file = st.file_uploader("Upload your CSV or Excel file", type=["csv","xlsx"])
+uploaded_file = st.file_uploader("Upload your CSV file", type=["csv"])
 
 if uploaded_file:
     try:
@@ -99,4 +99,4 @@ Dataset Overview:
         st.error(f" Error reading CSV file: {str(e)}")
 
 else:
-    st.info("👆 Upload a CSV or Excel file to begin asking questions.")
+    st.info("👆 Upload a CSV file to begin asking questions.")
