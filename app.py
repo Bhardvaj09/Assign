@@ -99,4 +99,4 @@ Dataset Overview:
         st.error(f" Error reading CSV file: {str(e)}")
 
 else:
-    st.info("👆 Upload a CSV or Xlsx file to begin asking questions.")
+    st.info("👆 Upload a CSV or Excel file to begin asking questions.")
