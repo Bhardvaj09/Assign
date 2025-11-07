@@ -4,7 +4,7 @@ import pandas as pd
 import streamlit as st
 from langchain_openai import ChatOpenAI
 
-# Streamlit Page Config
+
 st.set_page_config(
     page_title="Chat with CSV - Data Analyst Agent",
     page_icon="📊",
@@ -13,7 +13,7 @@ st.set_page_config(
 
 st.title("Data Analyst Agent")
 
-# 🔑 Step 1: API Key Input
+
 st.sidebar.header(" OpenAI API Setup")
 api_key = st.sidebar.text_input("Enter your OpenAI API key:", type="password")
 
@@ -23,19 +23,19 @@ if not api_key:
 
 st.sidebar.markdown("---")
 
-# System Prompt
+
 SYSTEM_PROMPT = """You are an expert data analyst and Python programmer.
-Analyze the uploaded CSV data and accurately answer questions or generate Pandas and numpy code,Excel Formulas and can help with Tableau and visualizations using matplotlib.
+Analyze the uploaded CSV data and accurately answer questions or generate Pandas and numpy code,Excel Formulas and can help with Tableau and able to generate visualizations amd their codes using matplotlib and seaborn.
 Be concise, and only use data provided."""
 
-# 🔹 Step 2: File Upload
-uploaded_file = st.file_uploader("Upload your CSV file", type=["csv"])
+
+uploaded_file = st.file_uploader("Upload your CSV or Excel file", type=["csv","xlsx"])
 
 if uploaded_file:
     try:
         df = pd.read_csv(uploaded_file)
 
-        # Initialize OpenAI LLM
+        
         try:
             llm = ChatOpenAI(
                 model="gpt-4o-mini",
@@ -43,11 +43,11 @@ if uploaded_file:
                 openai_api_key=api_key
             )
 
-            # Maintain chat history
+           
             if "messages" not in st.session_state:
                 st.session_state.messages = []
 
-            # Chat input (no title above)
+           
             query = st.text_input(
                 "",
                 placeholder="Type your question or ask for code... (e.g., 'Show top 5 rows where sales > 5000')"
@@ -99,4 +99,4 @@ Dataset Overview:
         st.error(f" Error reading CSV file: {str(e)}")
 
 else:
-    st.info("👆 Upload a CSV file to begin asking questions.")
+    st.info("👆 Upload a CSV or Xlsx file to begin asking questions.")
