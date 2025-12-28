@@ -6,7 +6,7 @@ from langchain_openai import ChatOpenAI
 # PAGE CONFIG
 # --------------------------------------------------
 st.set_page_config(
-    page_title="ML Engineer Agent",
+    page_title="ML Agent",
     page_icon="🤖",
     layout="wide"
 )
@@ -151,17 +151,17 @@ Summary Statistics:
                         {"role": "assistant", "content": answer}
                     )
 
-                    st.success("✅ Response")
+                    st.success(" Response")
                     st.markdown(answer)
 
                 except Exception as e:
-                    st.error(f"❌ Error: {str(e)}")
+                    st.error(f" Error: {str(e)}")
 
         elif ask_button and not query.strip():
-            st.warning("⚠️ Please enter a valid ML question.")
+            st.warning(" Please enter a valid ML question.")
 
     except Exception as e:
-        st.error(f"❌ Error reading CSV file: {str(e)}")
+        st.error(f" Error reading CSV file: {str(e)}")
 
 else:
     st.info("👆 Upload a CSV file to start using the ML Agent")
