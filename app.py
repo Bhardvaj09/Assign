@@ -11,7 +11,7 @@ st.set_page_config(
     layout="wide"
 )
 
-st.title("🤖 Machine Learning Engineer Agent")
+st.title("🤖 Machine Learning Agent")
 
 # --------------------------------------------------
 # SIDEBAR – API KEY
